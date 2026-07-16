@@ -1,7 +1,7 @@
 {
-  "name": "@desirecore/electron-vite",
+  "name": "@kitschpatrol/electron-vite",
   "version": "6.0.0-beta.3",
-  "description": "Electron build tooling based on Vite",
+  "description": "A fork of electron-vite with hotfixes.",
   "type": "module",
   "main": "./dist/index.js",
   "types": "./dist/index.d.ts",
@@ -23,17 +23,17 @@
   "engines": {
     "node": "^20.19.0 || >=22.12.0"
   },
-  "packageManager": "pnpm@10.12.4",
+  "packageManager": "pnpm@11.13.0",
   "author": "Alex Wei<https://github.com/alex8088>",
   "license": "MIT",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/desirecore/electron-vite.git"
+    "url": "git+https://github.com/kitschpatrol/electron-vite.git"
   },
   "bugs": {
-    "url": "https://github.com/desirecore/electron-vite/issues"
+    "url": "https://github.com/kitschpatrol/electron-vite/issues"
   },
-  "homepage": "https://github.com/desirecore/electron-vite",
+  "homepage": "https://github.com/kitschpatrol/electron-vite",
   "publishConfig": {
     "access": "public"
   },
@@ -47,10 +47,11 @@
     "format": "prettier --write .",
     "lint": "eslint --cache .",
     "typecheck": "tsc --noEmit",
-    "build": "pnpm run lint && rollup -c rollup.config.ts --configPlugin typescript"
+    "build": "pnpm run lint && rollup -c rollup.config.ts --configPlugin typescript",
+    "release": "bumpp --commit 'release: %s' && pnpm build && NPM_AUTH_TOKEN=$(op read 'op://Personal/npm/token') pnpm publish --tag latest"
   },
   "simple-git-hooks": {
-    "pre-commit": "npx lint-staged",
+    "pre-commit": "pnpx lint-staged",
     "commit-msg": "node scripts/verifyCommit.js $1"
   },
   "lint-staged": {
@@ -79,6 +80,7 @@
     "@swc/core": "^1.15.21",
     "@types/babel__core": "^7.20.5",
     "@types/node": "^22.19.15",
+    "bumpp": "^11.1.0",
     "eslint": "^10.1.0",
     "eslint-config-prettier": "^10.1.8",
     "eslint-plugin-prettier": "^5.5.5",
@@ -101,12 +103,5 @@
     "esbuild": "^0.25.11",
     "magic-string": "^0.30.21",
     "picocolors": "^1.1.1"
-  },
-  "pnpm": {
-    "onlyBuiltDependencies": [
-      "@swc/core",
-      "esbuild",
-      "simple-git-hooks"
-    ]
   }
 }

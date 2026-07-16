@@ -1,3 +1,11 @@
+This is a fork of [alex8088/electron-vite](https://github.com/alex8088/electron-vite) incorporating patches from [desirecore/electron-vite](https://github.com/desirecore/electron-vite), published to npm as [`@kitschpatrol/electron-vite`](https://www.npmjs.com/package/@kitschpatrol/electron-vite).
+
+The NPM release will be deprecated in favor of [alex8088/electron-vite](https://github.com/alex8088/electron-vite) if / when upstream fixes land.
+
+The original readme follows with light modifications:
+
+---
+
 <p align="center">
   <img src="https://alex8088.github.io/assets/electron-vite.svg" width="150px" height="150px">
 </p>
@@ -41,10 +49,10 @@
 
 ### Install
 
-> This is a community fork published as [`@desirecore/electron-vite`](https://www.npmjs.com/package/@desirecore/electron-vite). The CLI command stays `electron-vite`.
+> This is a community fork published as [`@kitschpatrol/electron-vite`](https://www.npmjs.com/package/@kitschpatrol/electron-vite). The CLI command remains `electron-vite`.
 
 ```sh
-npm i @desirecore/electron-vite -D
+npm i @kitschpatrol/electron-vite -D
 ```
 
 ### Development & Build
