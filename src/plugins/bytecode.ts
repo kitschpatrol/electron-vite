@@ -27,8 +27,6 @@ function getBytecodeCompilerPath(): string {
   }
 }
 
-let bytecodeId = 0
-
 function compileToBytecode(code: string, renderer: boolean): Promise<Buffer> {
   return new Promise((resolve, reject) => {
     const electronPath = getElectronPath()
@@ -55,16 +53,14 @@ function compileToBytecode(code: string, renderer: boolean): Promise<Buffer> {
     //   - main / node chunks -> the Electron browser (main) process
     //   - preload chunks     -> a renderer process (a hidden window whose sandbox:false
     //                           preload performs the compile)
-    // A GUI process has no usable stdio pipe, so code in / cache out go through temp files.
-    // The id is monotonic within the process and namespaced by pid, keeping concurrent
-    // compilations (and parallel electron-vite builds) from colliding.
-    const id = `${process.pid}-${bytecodeId++}`
-    const inFile = path.join(os.tmpdir(), `electron-vite-bytecode-${id}.in.js`)
-    const outFile = path.join(os.tmpdir(), `electron-vite-bytecode-${id}.out.jsc`)
+    // A GUI process has no usable stdio pipe, so code in / cache out go through files in
+    // a private, randomly named temp directory.
+    const tempDir = fs.mkdtempSync(path.join(os.tmpdir(), 'electron-vite-bytecode-'))
+    const inFile = path.join(tempDir, 'input.js')
+    const outFile = path.join(tempDir, 'output.jsc')
 
     const cleanup = (): void => {
-      fs.rmSync(inFile, { force: true })
-      fs.rmSync(outFile, { force: true })
+      fs.rmSync(tempDir, { recursive: true, force: true })
     }
 
     const env: NodeJS.ProcessEnv = {
@@ -78,7 +74,7 @@ function compileToBytecode(code: string, renderer: boolean): Promise<Buffer> {
     }
 
     try {
-      fs.writeFileSync(inFile, code)
+      fs.writeFileSync(inFile, code, { flag: 'wx', mode: 0o600 })
     } catch (err) {
       cleanup()
       reject(err as Error)
