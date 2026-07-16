@@ -44,7 +44,7 @@
     "plugin"
   ],
   "scripts": {
-    "format": "prettier --write .",
+    "format": "mdat && prettier --write .",
     "lint": "eslint --cache .",
     "typecheck": "tsc --noEmit",
     "build": "pnpm run lint && rollup -c rollup.config.ts --configPlugin typescript",
@@ -86,6 +86,7 @@
     "eslint-plugin-prettier": "^5.5.6",
     "globals": "^17.7.0",
     "lint-staged": "^16.4.0",
+    "mdat": "^2.3.6",
     "prettier": "^3.9.5",
     "rollup": "^4.62.2",
     "rollup-plugin-dts": "^6.4.1",

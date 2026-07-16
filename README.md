@@ -1,6 +1,26 @@
+<!-- title -->
+
+# @kitschpatrol/electron-vite
+
+<!-- /title -->
+
+<!-- badges -->
+
+[![NPM Package @kitschpatrol/electron-vite](https://img.shields.io/npm/v/@kitschpatrol/electron-vite.svg)](https://npmjs.com/package/@kitschpatrol/electron-vite)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/license/mit/)
+[![CI](https://github.com/kitschpatrol/electron-vite/actions/workflows/ci.yml/badge.svg)](https://github.com/kitschpatrol/electron-vite/actions/workflows/ci.yml)
+
+<!-- /badges -->
+
+<!-- short-description -->
+
+**A fork of electron-vite with hotfixes.**
+
+<!-- /short-description -->
+
 This is a fork of [alex8088/electron-vite](https://github.com/alex8088/electron-vite) incorporating patches from [desirecore/electron-vite](https://github.com/desirecore/electron-vite), published to npm as [`@kitschpatrol/electron-vite`](https://www.npmjs.com/package/@kitschpatrol/electron-vite).
 
-The NPM release will be deprecated in favor of [alex8088/electron-vite](https://github.com/alex8088/electron-vite) if / when upstream fixes land.
+The npm release will be deprecated in favor of [alex8088/electron-vite](https://github.com/alex8088/electron-vite) if / when upstream fixes land.
 
 The original readme follows with light modifications:
 
@@ -12,13 +32,7 @@ The original readme follows with light modifications:
 
 <div align="center">
   <h1>electron-vite</h1>
-</div>
-<p align="center">Next generation Electron build tooling based on Vite</p>
-
-<p align="center">
-<img src="https://img.shields.io/npm/v/electron-vite?color=6988e6&label=version">
-<img src="https://img.shields.io/github/license/alex8088/electron-vite?color=blue" alt="license" />
-</p>
+</div> <p align="center">Next generation Electron build tooling based on Vite</p>
 
 <p align="center">
 <a href="https://electron-vite.org">Documentation</a> |
@@ -30,8 +44,7 @@ The original readme follows with light modifications:
 <a href="https://cn.electron-vite.org">中文文档</a>
 </p>
 
-<br />
-<br />
+<br /> <br />
 
 ## Features
 
