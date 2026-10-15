@@ -1,7 +1,7 @@
 {
   "name": "@kitschpatrol/electron-vite",
   "version": "6.0.0-beta.4",
-  "description": "A fork of electron-vite with hotfixes.",
+  "description": "Fork of electron-vite with hotfixes.",
   "type": "module",
   "main": "./dist/index.js",
   "types": "./dist/index.d.ts",
@@ -48,7 +48,7 @@
     "lint": "eslint --cache .",
     "typecheck": "tsc --noEmit",
     "build": "pnpm run lint && rollup -c rollup.config.ts --configPlugin typescript",
-    "release": "bumpp --commit 'release: %s' && pnpm build && NPM_AUTH_TOKEN=$(op read 'op://Personal/npm/token') pnpm publish --tag latest"
+    "release": "bumpp --commit 'release: %s' && pnpm build && NPM_TOKEN=$(op read 'op://Personal/npm/token') pnpm publish --tag latest"
   },
   "simple-git-hooks": {
     "pre-commit": "pnpx lint-staged",
