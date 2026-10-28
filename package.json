@@ -23,7 +23,7 @@
   "engines": {
     "node": "^20.19.0 || >=22.12.0"
   },
-  "packageManager": "pnpm@11.13.0",
+  "packageManager": "pnpm@12.15.0",
   "author": "Alex Wei<https://github.com/alex8088>",
   "license": "MIT",
   "repository": {
@@ -45,6 +45,7 @@
   ],
   "scripts": {
     "format": "mdat && prettier --write .",
+    "clean-deep": "shx rm -f pnpm-lock.yaml && git clean -fdX",
     "lint": "eslint --cache .",
     "typecheck": "tsc --noEmit",
     "build": "pnpm run lint && rollup -c rollup.config.ts --configPlugin typescript",
@@ -91,6 +92,7 @@
     "rollup": "^4.62.2",
     "rollup-plugin-dts": "^6.4.1",
     "rollup-plugin-rm": "^1.0.2",
+    "shx": "^0.4.0",
     "simple-git-hooks": "^2.13.1",
     "tslib": "^2.8.1",
     "typescript": "^5.9.3",
