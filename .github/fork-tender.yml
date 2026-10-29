@@ -1,0 +1,11 @@
+upstreams:
+  - repo: alex8088/electron-vite
+    parent: true
+  - repo: desirecore/electron-vite
+
+guidance: |
+  Favor matching alex8088/electron-vite. It is the canonical upstream and this
+  fork should track it as closely as possible. Only take changes from
+  desirecore/electron-vite when they are hotfixes that alex8088/electron-vite
+  does not have yet; once alex8088 lands an equivalent fix, prefer the
+  alex8088 version.
