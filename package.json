@@ -1,6 +1,6 @@
 {
   "name": "@kitschpatrol/electron-vite",
-  "version": "6.0.0",
+  "version": "6.0.0-fork.1",
   "description": "Fork of electron-vite with hotfixes.",
   "type": "module",
   "main": "./dist/index.js",
