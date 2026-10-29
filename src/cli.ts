@@ -26,7 +26,6 @@ interface GlobalCLIOptions {
   watch?: boolean
   outDir?: string
   entry?: string
-  electronPackage?: string
 }
 
 interface DevCLIOptions {
@@ -35,7 +34,6 @@ interface DevCLIOptions {
   remoteDebuggingPort?: string
   noSandbox?: boolean
   rendererOnly?: boolean
-  noElectronStart?: boolean
 }
 
 interface PreviewCLIOptions {
@@ -70,7 +68,6 @@ cli
   .option('--sourcemap', `[boolean] output source maps for debug (default: false)`)
   .option('--outDir <dir>', `[string] output directory (default: out)`)
   .option('--entry <file>', `[string] specify electron entry file`)
-  .option('--electronPackage <name>', `[string] specify electron package name (default: electron)`)
 
 // dev
 cli
@@ -83,7 +80,6 @@ cli
   .option('--remoteDebuggingPort <port>', `[string] port for remote debugging`)
   .option('--noSandbox', `[boolean] forces renderer process to run un-sandboxed`)
   .option('--rendererOnly', `[boolean] only dev server for the renderer`)
-  .option('--noElectronStart', `[boolean] run dev servers without starting the electron app`)
   .action(async (root: string, options: DevCLIOptions & GlobalCLIOptions) => {
     if (options.remoteDebuggingPort) {
       process.env.REMOTE_DEBUGGING_PORT = options.remoteDebuggingPort
@@ -109,18 +105,11 @@ cli
       process.env.ELECTRON_ENTRY = options.entry
     }
 
-    if (options.electronPackage) {
-      process.env.ELECTRON_PKG_NAME = options.electronPackage
-    }
-
     const { createServer } = await import('./server')
     const inlineConfig = createInlineConfig(root, options)
 
     try {
-      await createServer(inlineConfig, {
-        rendererOnly: options.rendererOnly,
-        noElectronStart: options.noElectronStart
-      })
+      await createServer(inlineConfig, { rendererOnly: options.rendererOnly })
     } catch (e) {
       const error = e as Error
       createLogger(options.logLevel).error(
@@ -138,10 +127,6 @@ cli.command('build [root]', 'build for production').action(async (root: string, 
 
   if (options.entry) {
     process.env.ELECTRON_ENTRY = options.entry
-  }
-
-  if (options.electronPackage) {
-    process.env.ELECTRON_PKG_NAME = options.electronPackage
   }
 
   try {
@@ -168,10 +153,6 @@ cli
 
     if (options.entry) {
       process.env.ELECTRON_ENTRY = options.entry
-    }
-
-    if (options.electronPackage) {
-      process.env.ELECTRON_PKG_NAME = options.electronPackage
     }
 
     if (options['--']) {

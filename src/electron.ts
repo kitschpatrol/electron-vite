@@ -1,17 +1,10 @@
 import path from 'node:path'
 import fs from 'node:fs'
 import { createRequire } from 'node:module'
-import { type ChildProcess, spawn, spawnSync } from 'node:child_process'
-import colors from 'picocolors'
-import { createLogger } from 'vite'
+import { type ChildProcess, spawn } from 'node:child_process'
 import { loadPackageData } from './utils'
 
 const _require = createRequire(import.meta.url)
-
-// The Electron package name, defaults to 'electron'. A custom build (e.g.
-// '@overwolf/ow-electron') can be selected via the ELECTRON_PKG_NAME env var,
-// which is set from the `--electronPackage` CLI option.
-const getElectronPackageName = (): string => process.env.ELECTRON_PKG_NAME || 'electron'
 
 const ensureElectronEntryFile = (root = process.cwd()): void => {
   if (process.env.ELECTRON_ENTRY) return
@@ -33,7 +26,7 @@ const ensureElectronEntryFile = (root = process.cwd()): void => {
 const getElectronMajorVer = (): string => {
   let majorVer = process.env.ELECTRON_MAJOR_VER || ''
   if (!majorVer) {
-    const pkg = _require.resolve(`${getElectronPackageName()}/package.json`)
+    const pkg = _require.resolve('electron/package.json')
     if (fs.existsSync(pkg)) {
       const version = _require(pkg).version
       majorVer = version.split('.')[0]
@@ -53,41 +46,20 @@ export function supportImportMetaPaths(): boolean {
   return parseInt(majorVer) >= 30
 }
 
-// Electron 42+ no longer downloads its binary via a `postinstall` script
-// (supply-chain hardening). Instead the binary is fetched on first launch by
-// running the package's own `install.js`, mirroring what `npx electron` does.
-function installElectronBinary(electronModulePath: string): void {
-  const installScript = path.join(electronModulePath, 'install.js')
-  if (!fs.existsSync(installScript)) {
-    throw new Error(`Electron install script not found at "${installScript}", please reinstall the electron package`)
-  }
-  createLogger().info(colors.green('Electron binary not found, downloading...'))
-  const result = spawnSync(process.execPath, [installScript], { stdio: 'inherit', cwd: electronModulePath })
-  if (result.status !== 0) {
-    throw new Error('Failed to download the Electron binary')
-  }
-}
-
 export function getElectronPath(): string {
   let electronExecPath = process.env.ELECTRON_EXEC_PATH || ''
   if (!electronExecPath) {
-    const electronPkgName = getElectronPackageName()
-    const electronModulePath = path.dirname(_require.resolve(electronPkgName))
+    const electronModulePath = path.dirname(_require.resolve('electron'))
     const pathFile = path.join(electronModulePath, 'path.txt')
-    const readExecutablePath = (): string | undefined =>
-      fs.existsSync(pathFile) ? fs.readFileSync(pathFile, 'utf-8') : undefined
-    let executablePath = readExecutablePath()
-    if (!executablePath && parseInt(getElectronMajorVer()) >= 42) {
-      installElectronBinary(electronModulePath)
-      executablePath = readExecutablePath()
+    let executablePath
+    if (fs.existsSync(pathFile)) {
+      executablePath = fs.readFileSync(pathFile, 'utf-8')
     }
     if (executablePath) {
       electronExecPath = path.join(electronModulePath, 'dist', executablePath)
       process.env.ELECTRON_EXEC_PATH = electronExecPath
     } else {
-      throw new Error(
-        `The Electron package "${electronPkgName}" is not installed correctly, please reinstall it and try again`
-      )
+      throw new Error('Electron uninstall')
     }
   }
   return electronExecPath
@@ -123,9 +95,6 @@ export function getElectronNodeTarget(): string {
   }
   if (electronVer && parseInt(electronVer) > 10) {
     let target = nodeVer[electronVer]
-    // Unknown (typically newer-than-table) versions fall back to the newest known
-    // target. Integer-like keys are iterated in ascending numeric order, so the
-    // newest entry is last — reverse() puts it first.
     if (!target) target = Object.values(nodeVer).reverse()[0]
     return 'node' + target
   }
@@ -162,9 +131,6 @@ export function getElectronChromeTarget(): string {
   }
   if (electronVer && parseInt(electronVer) > 10) {
     let target = chromeVer[electronVer]
-    // Unknown (typically newer-than-table) versions fall back to the newest known
-    // target. Integer-like keys are iterated in ascending numeric order, so the
-    // newest entry is last — reverse() puts it first.
     if (!target) target = Object.values(chromeVer).reverse()[0]
     return 'chrome' + target
   }

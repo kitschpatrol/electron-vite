@@ -1,53 +1,16 @@
-### Unreleased
-
-> Synced with upstream `alex8088/electron-vite` v6.0.0. Fork-only features are preserved
-> (`--electronPackage`, `--noElectronStart`, lazy `electron/install.js`, renderer HTML
-> re-rooting, recursive `?modulePath`, `workerPlugin` export, protected string
-> concatenation, rename-safe bytecode compiler path resolution).
-
-Fork hotfixes replaced by their upstream equivalents:
-
-- `esmShim` now injects the CommonJS shim after the last static import found via
-  `this.parse` (upstream's fix for [#906](https://github.com/alex8088/electron-vite/issues/906))
-  instead of prepending it at offset 0
-- bytecode compilation now uses upstream's single long-lived Electron compiler process with
-  an IPC/RPC channel and an `EVBC0001` cache envelope, replacing the fork's per-chunk
-  spawn + temp-file approach
-- sub-build config isolation now uses upstream's `cloneConfig` (which preserves plugin
-  identity) instead of the fork's loosened `deepClone`
-
-Breaking for fork users:
-
-- `bytecodePlugin`'s `chunkAlias` accepts `string | string[] | RegExp` (upstream's shape).
-  Mixed `(string | RegExp)[]` arrays, which the fork briefly supported, are no longer accepted.
-
-### v6.0.0-beta.3 (_2026-06-27_)
-
-- feat: add Electron 43 build targets (Node 24.17 / Chromium 150); verified end-to-end on Electron 43 (V8 15.0), including `build.bytecode`
-
-### v6.0.0-beta.2 (_2026-06-27_)
-
-> Fork release published as `@desirecore/electron-vite` (CLI command stays `electron-vite`). Stabilizes the Vite 8 / Rolldown beta and merges a batch of long-pending upstream fixes. Issue links reference the upstream `alex8088/electron-vite` tracker.
-
-- fix(esmShim): inject the CommonJS shim via AST detection at offset 0 to stop corrupting large Vite 8/Rolldown ESM bundles ([#906](https://github.com/alex8088/electron-vite/issues/906))
-- fix(swc): also set `oxc: false` so `swcPlugin` disables Vite 8's default Oxc transform ([#916](https://github.com/alex8088/electron-vite/issues/916))
-- fix(config): no longer throw on non-plain objects (plugin/class instances) when isolating sub-build config ([#902](https://github.com/alex8088/electron-vite/issues/902))
-- fix(renderer): re-root renderer build when the HTML entry lives outside `root`, avoiding illegal `../` emit paths under Rolldown ([#915](https://github.com/alex8088/electron-vite/issues/915))
-- fix(bytecode): compile via `vm.compileFunction` inside the consuming process type to fix `cachedDataRejected` crashes on Electron 42 / V8 14.8 ([#911](https://github.com/alex8088/electron-vite/issues/911), [#912](https://github.com/alex8088/electron-vite/pull/912))
-- fix(bytecode): remove a non-deterministic compile race that intermittently produced bad bundles ([#910](https://github.com/alex8088/electron-vite/issues/910))
-- fix(bytecode): correct the renderer preset plugin name so the renderer guard actually applies
-- fix(modulePath): inject `modulePathPlugin` into the sub-build so nested `?modulePath` and re-exports resolve ([#860](https://github.com/alex8088/electron-vite/issues/860), [#862](https://github.com/alex8088/electron-vite/issues/862))
-- fix(dev): forward `SIGINT`/`SIGTERM`/`SIGHUP` to the Electron child and escalate to `SIGKILL` on restart, fixing zombie Electron processes ([#899](https://github.com/alex8088/electron-vite/issues/899), [#734](https://github.com/alex8088/electron-vite/issues/734), [#353](https://github.com/alex8088/electron-vite/issues/353))
-- feat: support Electron 42 build targets and lazily run `electron/install.js` when the binary is missing on Electron ≥ 42 ([#904](https://github.com/alex8088/electron-vite/issues/904))
-- feat(bytecode): allow `RegExp` (and mixed arrays) for the `chunkAlias` option ([#885](https://github.com/alex8088/electron-vite/pull/885))
-- feat(bytecode): protect static string-concatenation expressions
-- feat(cli): add `--noElectronStart` to run dev servers without launching Electron ([#578](https://github.com/alex8088/electron-vite/pull/578))
-- feat(cli): add `--electronPackage <name>` to support a custom Electron package name ([#867](https://github.com/alex8088/electron-vite/pull/867))
-- feat: export `workerPlugin` ([#480](https://github.com/alex8088/electron-vite/pull/480))
-
-> Note: with `build.bytecode`, compilation now launches a real Electron process. On Linux without a display, run under `xvfb-run`.
-
 ### v6.0.0 (_2026-10-15_)
+
+> `@kitschpatrol/electron-vite` v6.0.0 is identical to upstream `electron-vite` v6.0.0 apart from the package name. It removes these fork-only changes shipped in `@kitschpatrol/electron-vite@6.0.0-beta.4`:
+>
+> - the `--electronPackage` and `--noElectronStart` CLI options
+> - the `workerPlugin` export
+> - mixed `(string | RegExp)[]` arrays for `bytecodePlugin`'s `chunkAlias` option (use `string | string[] | RegExp`)
+> - downloading the Electron binary on first launch when it is missing on Electron ≥ 42
+> - re-rooting the renderer build when an HTML entry lives outside `root`
+> - resolving nested `?modulePath` imports inside `?modulePath` sub-builds
+> - matching `protectedStrings` against concatenated string literals
+> - the `SIGKILL` fallback when restarting Electron during dev
+> - the early error for bytecode builds on Linux without a display
 
 - feat(bytecode): support RegExp for chunkAlias option ([#885](https://github.com/alex8088/electron-vite/issues/885))
 - refactor: share and normalize build output resolution

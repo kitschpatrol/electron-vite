@@ -339,40 +339,6 @@ function protectStringsPlugin(api: typeof Babel & Babel.ConfigAPI): Babel.Plugin
           path.replaceWith(createFromCharCodeFunction(value))
         }
       },
-      BinaryExpression(path, state) {
-        // Fold constant string concatenations (e.g. `"a" + "b"`, or a certificate split
-        // across lines as `"-----BEGIN..." + "\n" + "..."`) so a protected value assembled
-        // from several literals is still replaced, not just single-literal occurrences.
-        if (path.node.operator !== '+') {
-          return
-        }
-
-        // obj['a' + 'b']
-        if (path.parentPath.isMemberExpression({ property: path.node, computed: true })) {
-          return
-        }
-
-        // { ['a' + 'b']: value }
-        if (path.parentPath.isObjectProperty({ key: path.node, computed: true })) {
-          return
-        }
-
-        // require('a' + 'b')
-        if (
-          path.parentPath.isCallExpression() &&
-          t.isIdentifier(path.parentPath.node.callee) &&
-          path.parentPath.node.callee.name === 'require' &&
-          path.parentPath.node.arguments[0] === path.node
-        ) {
-          return
-        }
-
-        const { confident, value } = path.evaluate()
-        if (confident && typeof value === 'string' && state.opts.protectedStrings.has(value)) {
-          path.replaceWith(createFromCharCodeFunction(value))
-          path.skip()
-        }
-      },
       TemplateLiteral(path, state) {
         // Must be a pure static template literal
         // expressions must be empty (no ${variables})

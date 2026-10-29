@@ -1,28 +1,11 @@
 import { type ChildProcess, spawn } from 'node:child_process'
-import fs from 'node:fs'
 import path from 'node:path'
-import { fileURLToPath } from 'node:url'
+import { createRequire } from 'node:module'
 import { getElectronPath } from './electron'
 
+const require = createRequire(import.meta.url)
 const RPC_TIMEOUT = 30_000
 const SHUTDOWN_TIMEOUT = 3_000
-
-/**
- * Resolve a script in `bin/` relative to this module, walking up to the package root,
- * rather than by package name, so the path stays correct for forks/renames.
- */
-function resolveBinScript(name: string): string {
-  let dir = path.dirname(fileURLToPath(import.meta.url))
-  for (;;) {
-    const candidate = path.join(dir, 'bin', name)
-    if (fs.existsSync(candidate)) return candidate
-    const parent = path.dirname(dir)
-    if (parent === dir) {
-      throw new Error(`Could not locate bin/${name} for the bytecode compiler`)
-    }
-    dir = parent
-  }
-}
 
 export type BytecodeCompileResult = {
   sourceLength: number
@@ -66,20 +49,14 @@ export class BytecodeCompiler {
   }
 
   private async initialize(): Promise<void> {
-    // The compiler runs as a real Electron app (not `ELECTRON_RUN_AS_NODE`), so it needs
-    // a display on Linux. Fail fast with an actionable message instead of letting the
-    // `ready` RPC time out after 30s.
-    if (process.platform === 'linux' && !process.env.DISPLAY && !process.env.WAYLAND_DISPLAY) {
-      throw new Error(
-        'Compiling bytecode launches a headless Electron process, which requires a display on Linux. ' +
-          'Run the build under a virtual framebuffer, e.g. `xvfb-run --auto-servernum electron-vite build`, ' +
-          'or set the DISPLAY environment variable.'
-      )
-    }
     const env: NodeJS.ProcessEnv = { ...process.env, ELECTRON_VITE_RPC: 'true' }
     delete env.ELECTRON_RUN_AS_NODE
     this.stderr = ''
-    const compilerPath = resolveBinScript('electron-bytecode-main.cjs')
+    const compilerPath = path.join(
+      path.dirname(require.resolve('@kitschpatrol/electron-vite/package.json')),
+      'bin',
+      'electron-bytecode-main.cjs'
+    )
     const ps = spawn(getElectronPath(), [compilerPath], {
       stdio: ['ignore', 'ignore', 'pipe', 'ipc'],
       windowsHide: true,

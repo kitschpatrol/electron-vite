@@ -9,7 +9,7 @@ const nodeWorkerImporterRE = /(?:\?)nodeWorker&importer=([^&]+)(?:&|$)/
 /**
  * Resolve `?nodeWorker` import and automatically generate `Worker` wrapper.
  */
-export function workerPlugin(): Plugin {
+export default function workerPlugin(): Plugin {
   return {
     name: 'vite:node-worker',
     apply: 'build',
@@ -62,5 +62,3 @@ export function workerPlugin(): Plugin {
     }
   }
 }
-
-export default workerPlugin
