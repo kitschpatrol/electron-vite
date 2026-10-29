@@ -20,7 +20,7 @@
 
 This is a fork of [alex8088/electron-vite](https://github.com/alex8088/electron-vite).
 
-Currently, it is in sync with the upstream version, but I'm keeping it around in case patches are required. It is published to npm as [`@kitschpatrol/electron-vite`](https://www.npmjs.com/package/@kitschpatrol/electron-vite).
+Currently, it matches the upstream version except for one hotfix: the Electron binary is downloaded on first launch (Electron 42+ no longer downloads it during install), and Electron 45 has its own build targets. It is published to npm as [`@kitschpatrol/electron-vite`](https://www.npmjs.com/package/@kitschpatrol/electron-vite).
 
 I originally forked to incorproate patches from [desirecore/electron-vite](https://github.com/desirecore/electron-vite).
 

@@ -1,3 +1,10 @@
+### Unreleased
+
+> `@kitschpatrol/electron-vite` hotfix for Electron 42+, which no longer downloads its binary in a `postinstall` script:
+>
+> - `electron-vite dev`, `preview`, and bytecode builds now get the Electron executable from `require('electron')` instead of reading `electron/path.txt`, so Electron downloads its binary on first launch instead of electron-vite failing with `Electron uninstall`
+> - Electron 45 build targets (Node 24.22 / Chrome 156)
+
 ### v6.0.0 (_2026-10-15_)
 
 > `@kitschpatrol/electron-vite` v6.0.0 is identical to upstream `electron-vite` v6.0.0 apart from the package name. It removes these fork-only changes shipped in `@kitschpatrol/electron-vite@6.0.0-beta.4`:

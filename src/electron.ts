@@ -49,18 +49,9 @@ export function supportImportMetaPaths(): boolean {
 export function getElectronPath(): string {
   let electronExecPath = process.env.ELECTRON_EXEC_PATH || ''
   if (!electronExecPath) {
-    const electronModulePath = path.dirname(_require.resolve('electron'))
-    const pathFile = path.join(electronModulePath, 'path.txt')
-    let executablePath
-    if (fs.existsSync(pathFile)) {
-      executablePath = fs.readFileSync(pathFile, 'utf-8')
-    }
-    if (executablePath) {
-      electronExecPath = path.join(electronModulePath, 'dist', executablePath)
-      process.env.ELECTRON_EXEC_PATH = electronExecPath
-    } else {
-      throw new Error('Electron uninstall')
-    }
+    // Electron 42+ has no `postinstall` script; the binary is downloaded on the first `require('electron')`.
+    electronExecPath = _require('electron')
+    process.env.ELECTRON_EXEC_PATH = electronExecPath
   }
   return electronExecPath
 }
@@ -69,6 +60,7 @@ export function getElectronNodeTarget(): string {
   const electronVer = getElectronMajorVer()
 
   const nodeVer = {
+    '45': '24.22',
     '44': '24.18',
     '43': '24.17',
     '42': '24.15',
@@ -105,6 +97,7 @@ export function getElectronChromeTarget(): string {
   const electronVer = getElectronMajorVer()
 
   const chromeVer = {
+    '45': '156',
     '44': '152',
     '43': '150',
     '42': '148',

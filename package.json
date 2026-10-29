@@ -49,7 +49,7 @@
     "lint": "eslint --cache .",
     "typecheck": "tsc --noEmit",
     "build": "pnpm run lint && rollup -c rollup.config.ts --configPlugin typescript",
-    "release": "bumpp --commit 'release: %s' && pnpm build && NPM_TOKEN=$(op read 'op://Personal/npm/token') pnpm publish --tag latest"
+    "release": "bumpp --preid fork --commit 'release: %s' && pnpm build && NPM_TOKEN=$(op read 'op://Personal/npm/token') pnpm publish --tag latest"
   },
   "simple-git-hooks": {
     "pre-commit": "pnpx lint-staged",
