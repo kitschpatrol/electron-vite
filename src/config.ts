@@ -1,7 +1,4 @@
 import path from 'node:path'
-import fs from 'node:fs'
-import { pathToFileURL } from 'node:url'
-import { createRequire } from 'node:module'
 import colors from 'picocolors'
 import {
   type UserConfig as ViteConfig,
@@ -14,7 +11,6 @@ import {
   mergeConfig,
   normalizePath
 } from 'vite'
-import { build } from 'esbuild'
 
 import {
   electronMainConfigPresetPlugin,
@@ -32,7 +28,8 @@ import modulePathPlugin from './plugins/modulePath'
 import isolateEntriesPlugin from './plugins/isolateEntries'
 import { type ExternalOptions, externalizeDepsPlugin } from './plugins/externalizeDeps'
 import { type BytecodeOptions, bytecodePlugin } from './plugins/bytecode'
-import { isObject, isFilePathESM, deepClone, asyncFlatten } from './utils'
+import { isObject, isFilePathESM, cloneConfig, asyncFlatten } from './utils'
+import { findConfigFile, bundleConfigFile, loadConfigFormBundledFile } from './load'
 
 export { defineConfig as defineViteConfig } from 'vite'
 
@@ -71,7 +68,7 @@ interface BytecodeMixin {
    * Options pass on to `bytecode` plugin in electron-vite.
    * https://electron-vite.org/guide/source-code-protection#options
    *
-   * Compile source code to v8 bytecode.
+   * Compiles source code to v8 bytecode and works only in the `build` command.
    */
   bytecode?: boolean | BytecodeOptions
 }
@@ -228,7 +225,7 @@ export abstract class ConfigFactory<T extends MainViteConfig | PreloadViteConfig
 
   async build(cleanMode?: boolean): Promise<T> {
     /* eslint-disable-next-line @typescript-eslint/no-explicit-any */
-    const config = mergeConfig(deepClone(this.baseConfig) as any, deepClone(this.inlineConfig)) as T
+    const config = mergeConfig(cloneConfig(this.baseConfig) as any, cloneConfig(this.inlineConfig)) as T
 
     config.mode = this.inlineConfig.mode || config.mode || process.env.NODE_ENV
 
@@ -365,8 +362,6 @@ function isOptions<T extends object>(value: boolean | T): value is T {
   return typeof value === 'object' && value !== null
 }
 
-const CONFIG_FILE_NAME = 'electron.vite.config'
-
 export async function loadConfigFromFile(
   configEnv: ConfigEnv,
   configFile?: string,
@@ -382,9 +377,7 @@ export async function loadConfigFromFile(
     throw new Error(`config file cannot be named ${configFile}.`)
   }
 
-  const resolvedPath = configFile
-    ? path.resolve(configFile)
-    : findConfigFile(configRoot, ['js', 'ts', 'mjs', 'cjs', 'mts', 'cts'])
+  const resolvedPath = configFile ? path.resolve(configFile) : findConfigFile(configRoot)
 
   if (!resolvedPath) {
     return {
@@ -398,7 +391,7 @@ export async function loadConfigFromFile(
 
   try {
     const { code, dependencies } = await bundleConfigFile(resolvedPath, isESM)
-    const configExport = await loadConfigFormBundledFile(configRoot, resolvedPath, code, isESM)
+    const configExport = await loadConfigFormBundledFile<ElectronViteConfigExport>(resolvedPath, code, isESM)
 
     const config = await (typeof configExport === 'function' ? configExport(configEnv) : configExport)
     if (!isObject(config)) {
@@ -422,118 +415,5 @@ export async function loadConfigFromFile(
   } catch (e) {
     createLogger(logLevel).error(colors.red(`failed to load config from ${resolvedPath}`), { error: e as Error })
     throw e
-  }
-}
-
-function findConfigFile(configRoot: string, extensions: string[]): string {
-  for (const ext of extensions) {
-    const configFile = path.resolve(configRoot, `${CONFIG_FILE_NAME}.${ext}`)
-    if (fs.existsSync(configFile)) {
-      return configFile
-    }
-  }
-  return ''
-}
-
-async function bundleConfigFile(fileName: string, isESM: boolean): Promise<{ code: string; dependencies: string[] }> {
-  const dirnameVarName = '__electron_vite_injected_dirname'
-  const filenameVarName = '__electron_vite_injected_filename'
-  const importMetaUrlVarName = '__electron_vite_injected_import_meta_url'
-  const result = await build({
-    absWorkingDir: process.cwd(),
-    entryPoints: [fileName],
-    write: false,
-    target: ['node20'],
-    platform: 'node',
-    bundle: true,
-    format: isESM ? 'esm' : 'cjs',
-    sourcemap: false,
-    metafile: true,
-    define: {
-      __dirname: dirnameVarName,
-      __filename: filenameVarName,
-      'import.meta.url': importMetaUrlVarName
-    },
-    plugins: [
-      {
-        name: 'externalize-deps',
-        setup(build): void {
-          build.onResolve({ filter: /.*/ }, args => {
-            const id = args.path
-            if (id[0] !== '.' && !path.isAbsolute(id)) {
-              return {
-                external: true
-              }
-            }
-            return null
-          })
-        }
-      },
-      {
-        name: 'replace-import-meta',
-        setup(build): void {
-          build.onLoad({ filter: /\.[cm]?[jt]s$/ }, async args => {
-            const contents = await fs.promises.readFile(args.path, 'utf8')
-            const injectValues =
-              `const ${dirnameVarName} = ${JSON.stringify(path.dirname(args.path))};` +
-              `const ${filenameVarName} = ${JSON.stringify(args.path)};` +
-              `const ${importMetaUrlVarName} = ${JSON.stringify(pathToFileURL(args.path).href)};`
-
-            return {
-              loader: args.path.endsWith('ts') ? 'ts' : 'js',
-              contents: injectValues + contents
-            }
-          })
-        }
-      }
-    ]
-  })
-  const { text } = result.outputFiles[0]
-  return {
-    code: text,
-    dependencies: result.metafile ? Object.keys(result.metafile.inputs) : []
-  }
-}
-
-interface NodeModuleWithCompile extends NodeModule {
-  /* eslint-disable-next-line @typescript-eslint/no-explicit-any */
-  _compile(code: string, filename: string): any
-}
-
-const _require = createRequire(import.meta.url)
-async function loadConfigFormBundledFile(
-  configRoot: string,
-  configFile: string,
-  bundledCode: string,
-  isESM: boolean
-): Promise<ElectronViteConfigExport> {
-  if (isESM) {
-    const fileNameTmp = path.resolve(configRoot, `${CONFIG_FILE_NAME}.${Date.now()}.mjs`)
-    fs.writeFileSync(fileNameTmp, bundledCode)
-
-    const fileUrl = pathToFileURL(fileNameTmp)
-    try {
-      return (await import(fileUrl.href)).default
-    } finally {
-      try {
-        fs.unlinkSync(fileNameTmp)
-      } catch {}
-    }
-  } else {
-    const extension = path.extname(configFile)
-    const realFileName = fs.realpathSync(configFile)
-    const loaderExt = extension in _require.extensions ? extension : '.js'
-    const defaultLoader = _require.extensions[loaderExt]!
-    _require.extensions[loaderExt] = (module: NodeModule, filename: string): void => {
-      if (filename === realFileName) {
-        ;(module as NodeModuleWithCompile)._compile(bundledCode, filename)
-      } else {
-        defaultLoader(module, filename)
-      }
-    }
-    delete _require.cache[_require.resolve(configFile)]
-    const raw = _require(configFile)
-    _require.extensions[loaderExt] = defaultLoader
-    return raw.__esModule ? raw.default : raw
   }
 }

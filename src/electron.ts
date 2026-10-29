@@ -97,6 +97,7 @@ export function getElectronNodeTarget(): string {
   const electronVer = getElectronMajorVer()
 
   const nodeVer = {
+    '44': '24.18',
     '43': '24.17',
     '42': '24.15',
     '41': '24.14',
@@ -135,6 +136,7 @@ export function getElectronChromeTarget(): string {
   const electronVer = getElectronMajorVer()
 
   const chromeVer = {
+    '44': '152',
     '43': '150',
     '42': '148',
     '41': '146',
@@ -197,41 +199,36 @@ export function startElectron(root: string | undefined): ChildProcess {
   const entry = process.env.ELECTRON_ENTRY || '.'
 
   const ps = spawn(electronPath, [entry].concat(args), { stdio: 'inherit' })
+  // `code` is null when the child was terminated by a signal, and `process.exit` ignores
+  // its second argument, so passing the listener directly would report every crash as a
+  // successful exit. Map a signal death to a non-zero status instead.
+  ps.on('close', (code, signal) => process.exit(code ?? (signal ? 1 : 0)))
 
-  currentElectronPs = ps
-  installSignalForwarding()
-
-  ps.on('close', (code, signal) => {
-    // A hot reload replaces the child via a new startElectron call. Only the
-    // active child should terminate the parent; otherwise restarting would
-    // bring down the dev server.
-    if (currentElectronPs === ps) {
-      process.exit(code ?? (signal ? 1 : 0))
-    }
-  })
+  setupElectronSignalHandlers(ps)
 
   return ps
 }
 
-// The currently running Electron child. Updated on every (re)start so a single
-// set of signal handlers always targets the live process.
-let currentElectronPs: ChildProcess | undefined
-let signalHandlersInstalled = false
+let electronPs: ChildProcess | undefined
+let signalHandlersRegistered = false
 
-// Forward termination signals to the Electron child instead of letting the
-// parent die immediately, matching electron's own CLI wrapper (electron/cli.js).
-// This lets the app run its quit handlers and prevents orphaned/zombie Electron
-// processes on Ctrl-C or when a parent task runner stops us. Handlers are
-// installed once to avoid leaking across hot-reload restarts.
-function installSignalForwarding(): void {
-  if (signalHandlersInstalled) return
-  signalHandlersInstalled = true
-  for (const signal of ['SIGINT', 'SIGTERM', 'SIGHUP'] as const) {
+function setupElectronSignalHandlers(child: ChildProcess): void {
+  electronPs = child
+
+  if (signalHandlersRegistered) return
+
+  const signals: NodeJS.Signals[] =
+    process.platform === 'win32' ? ['SIGINT', 'SIGTERM'] : ['SIGINT', 'SIGTERM', 'SIGHUP', 'SIGUSR2']
+
+  for (const signal of signals) {
     process.on(signal, () => {
-      const ps = currentElectronPs
-      if (ps && ps.exitCode === null && !ps.killed) {
-        ps.kill(signal)
-      }
+      const child = electronPs
+      if (!child?.pid || child.exitCode !== null || child.signalCode !== null) return
+
+      // A previously sent signal does not mean the child has exited.
+      child.kill(signal)
     })
   }
+
+  signalHandlersRegistered = true
 }

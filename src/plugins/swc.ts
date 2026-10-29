@@ -83,6 +83,9 @@ export function swcPlugin(options: SwcOptions = {}): Plugin {
   return {
     name: 'vite:swc',
     config(): UserConfig {
+      // Vite 8 defaults to Oxc for transform; `esbuild: false` is ignored and
+      // warns. SWC replaces both paths when this plugin is active.
+      // See https://github.com/alex8088/electron-vite/issues/916
       return {
         esbuild: false,
         oxc: false
@@ -102,7 +105,7 @@ export function swcPlugin(options: SwcOptions = {}): Plugin {
       }
     },
     async renderChunk(code, chunk): Promise<null | { code: string; map: SourceMap }> {
-      if (!minify || minify === 'terser') {
+      if (!minify || minify === 'terser' || minify === 'oxc') {
         return null
       }
       const result = await transformWithSWC(code, chunk.fileName, {
