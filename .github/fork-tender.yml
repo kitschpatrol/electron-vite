@@ -1,11 +1,28 @@
 upstreams:
   - repo: alex8088/electron-vite
     parent: true
-  - repo: desirecore/electron-vite
+  # - repo: desirecore/electron-vite
 
 guidance: |
-  Favor matching alex8088/electron-vite. It is the canonical upstream and this
-  fork should track it as closely as possible. Only take changes from
-  desirecore/electron-vite when they are hotfixes that alex8088/electron-vite
-  does not have yet; once alex8088 lands an equivalent fix, prefer the
-  alex8088 version.
+  Match alex8088/electron-vite exactly. This fork republishes upstream under
+  the @kitschpatrol/electron-vite name and must not carry any other changes.
+  The only allowed differences from upstream are:
+
+  - package.json: name, version, description, repository/bugs/homepage URLs,
+    publishConfig, and dev-only tooling (scripts, devDependencies,
+    packageManager, simple-git-hooks)
+  - src/bytecodeCompiler.ts: resolve '@kitschpatrol/electron-vite/package.json'
+    instead of 'electron-vite/package.json'
+  - README.md: the fork preamble and npm install instructions
+  - CHANGELOG.md: fork notes quoted under upstream release headings
+  - repo tooling: pnpm-workspace.yaml, pnpm-lock.yaml, and .github/
+
+  Resolve every other conflict in favor of alex8088/electron-vite.
+
+# # Legacy guidance when hotfixes are needed...
+# guidance: |
+#   Favor matching alex8088/electron-vite. It is the canonical upstream and this
+#   fork should track it as closely as possible. Only take changes from
+#   desirecore/electron-vite when they are hotfixes that alex8088/electron-vite
+#   does not have yet; once alex8088 lands an equivalent fix, prefer the
+#   alex8088 version.

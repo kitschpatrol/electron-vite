@@ -24,7 +24,7 @@ jobs:
           fetch-depth: 0 # required: merges need full history
           persist-credentials: false
 
-      - uses: kitschpatrol/github-action-fork-tender@c5e93b11c20b3b7c66612c7419971d6270591cd1 # v1.0.2
+      - uses: kitschpatrol/github-action-fork-tender@7d4e37c0ed9d878952f824ac76da23721a5aaa73 # v1.1.0
         with:
           max-turns: 400
         env:
