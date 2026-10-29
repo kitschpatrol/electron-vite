@@ -1,3 +1,26 @@
+### Unreleased
+
+> Synced with upstream `alex8088/electron-vite` v6.0.0. Fork-only features are preserved
+> (`--electronPackage`, `--noElectronStart`, lazy `electron/install.js`, renderer HTML
+> re-rooting, recursive `?modulePath`, `workerPlugin` export, protected string
+> concatenation, rename-safe bytecode compiler path resolution).
+
+Fork hotfixes replaced by their upstream equivalents:
+
+- `esmShim` now injects the CommonJS shim after the last static import found via
+  `this.parse` (upstream's fix for [#906](https://github.com/alex8088/electron-vite/issues/906))
+  instead of prepending it at offset 0
+- bytecode compilation now uses upstream's single long-lived Electron compiler process with
+  an IPC/RPC channel and an `EVBC0001` cache envelope, replacing the fork's per-chunk
+  spawn + temp-file approach
+- sub-build config isolation now uses upstream's `cloneConfig` (which preserves plugin
+  identity) instead of the fork's loosened `deepClone`
+
+Breaking for fork users:
+
+- `bytecodePlugin`'s `chunkAlias` accepts `string | string[] | RegExp` (upstream's shape).
+  Mixed `(string | RegExp)[]` arrays, which the fork briefly supported, are no longer accepted.
+
 ### v6.0.0-beta.3 (_2026-06-27_)
 
 - feat: add Electron 43 build targets (Node 24.17 / Chromium 150); verified end-to-end on Electron 43 (V8 15.0), including `build.bytecode`
@@ -24,25 +47,87 @@
 
 > Note: with `build.bytecode`, compilation now launches a real Electron process. On Linux without a display, run under `xvfb-run`.
 
-### v6.0.0-beta.0 (_2026-04-12_)
+### v6.0.0 (_2026-10-15_)
 
+- feat(bytecode): support RegExp for chunkAlias option ([#885](https://github.com/alex8088/electron-vite/issues/885))
+- refactor: share and normalize build output resolution
+- refactor: inline bytecode build plugin name
+- refactor!: invoke the bytecode compiler only once to compile all code
+- refactor: use pipe stdio for spawn Electron bytecode compliler and append stderr error
+- refactor: use rolldown instead of esbuild to bundle config file
+- refactor: compile bytecode using the Electron main process or renderer process rather then via the `ELECTRON_RUN_AS_NODE`
 - refactor!: simplify resolve config and isolate user config for sub-builds
+- refactor: `?modulePath` sub-build output strategy
+- perf(swcPlugin): skip redundant minification when using Oxc ([#922](https://github.com/alex8088/electron-vite/issues/922))
+- perf: skip Babel loading in development and builds without bytecode
+- perf: short-circuit bytecode detection in builds
+- perf: setup rollupOption compatibility via config factory
+- perf: build compatibility target for Electron 42, 43, 44
+- fix(asset): use consistent file paths for asset cache lookups
+- fix(bytecode): unable to obtain the bytecode build session in Node.js 24 ([#928](https://github.com/alex8088/electron-vite/issues/928))
+- fix(dev): exit non-zero when Electron is killed by a signal ([#918](https://github.com/alex8088/electron-vite/issues/918))
+- fix(dev): forward termination signals to Electron child ([#900](https://github.com/alex8088/electron-vite/issues/900))
+- fix(dev): improve Electron process signal handling
+- fix(bytecode): set the regular expression's `lastIndex` to 0 to perform a global match for chunkAlias option
+- fix(esmShim)!: use `this.parse` to find the last static import ([#906](https://github.com/alex8088/electron-vite/issues/906))
+- fix(deps)!: downgraded @babel/* to v7 due to Node requirements
+- fix: remove useless preset config
+- fix(swcPlugin): also disable oxc on Vite 8 ([#920](https://github.com/alex8088/electron-vite/issues/920))
+- fix: clone config without plugins [#902](https://github.com/alex8088/electron-vite/issues/902)
+- fix(deps)!: update magic-string to v1
+- fix(deps)!: update @babel/* to v8
 - fix!: compatible with rollupOptions and rolldownOptions
 - fix: chunk filename is wrong in ES mode
-
-### v6.0.0-beta.0 (_2026-04-09_)
-
-- refactor: `?modulePath` sub-build output strategy
 - fix(asset): isolate asset caches per environment
 - fix: use the environment api in plugins
 - fix: skip TTY terminal manipulations in CI environments
 - fix(deps)!: update vite to v8 ([#894](https://github.com/alex8088/electron-vite/issues/894))
 - fix: Typescript compiler option 'outDir' must be located inside Rollup 'dir' option
 - fix(isolateEntries): handle non-TTY stdout in build reporter (#887)
+- chore: simplify bytecode compiler initialization
+- chore: improve jsdoc for bytecode options ([#898](https://github.com/alex8088/electron-vite/issues/898))
+- chore(deps): update all non-major dependencies
+- chore(deps): update lint-staged to v17
 - chore(deps): update cac to v7
 - chore(deps): update globals to v17
 - chore(deps): update eslint and @eslint/js to v10
 - chore(deps): update all non-major dependencies
+
+### v6.0.0-beta.8 (_2026-10-11_)
+
+See [v6.0.0-beta.8 changelog](https://github.com/alex8088/electron-vite/blob/v6.0.0-beta.8/CHANGELOG.md)
+
+### v6.0.0-beta.7 (_2026-10-08_)
+
+See [v6.0.0-beta.7 changelog](https://github.com/alex8088/electron-vite/blob/v6.0.0-beta.7/CHANGELOG.md)
+
+### v6.0.0-beta.6 (_2026-10-07_)
+
+See [v6.0.0-beta.6 changelog](https://github.com/alex8088/electron-vite/blob/v6.0.0-beta.6/CHANGELOG.md)
+
+### v6.0.0-beta.5 (_2026-09-29_)
+
+See [v6.0.0-beta.5 changelog](https://github.com/alex8088/electron-vite/blob/v6.0.0-beta.5/CHANGELOG.md)
+
+### v6.0.0-beta.4 (_2026-09-28_)
+
+See [v6.0.0-beta.4 changelog](https://github.com/alex8088/electron-vite/blob/v6.0.0-beta.4/CHANGELOG.md)
+
+### v6.0.0-beta.3 (_2026-09-27_)
+
+See [v6.0.0-beta.3 changelog](https://github.com/alex8088/electron-vite/blob/v6.0.0-beta.3/CHANGELOG.md)
+
+### v6.0.0-beta.2 (_2026-09-27_)
+
+See [v6.0.0-beta.2 changelog](https://github.com/alex8088/electron-vite/blob/v6.0.0-beta.2/CHANGELOG.md)
+
+### v6.0.0-beta.1 (_2026-04-12_)
+
+See [v6.0.0-beta.1 changelog](https://github.com/alex8088/electron-vite/blob/v6.0.0-beta.1/CHANGELOG.md)
+
+### v6.0.0-beta.0 (_2026-04-09_)
+
+See [v6.0.0-beta.0 changelog](https://github.com/alex8088/electron-vite/blob/v6.0.0-beta.0/CHANGELOG.md)
 
 ### v5.0.0 (_2025-12-07_)
 
