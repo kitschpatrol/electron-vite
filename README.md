@@ -14,13 +14,15 @@
 
 <!-- short-description -->
 
-**A fork of electron-vite with hotfixes.**
+**Fork of electron-vite with hotfixes.**
 
 <!-- /short-description -->
 
-This is a fork of [alex8088/electron-vite](https://github.com/alex8088/electron-vite) incorporating patches from [desirecore/electron-vite](https://github.com/desirecore/electron-vite), published to npm as [`@kitschpatrol/electron-vite`](https://www.npmjs.com/package/@kitschpatrol/electron-vite).
+This is a fork of [alex8088/electron-vite](https://github.com/alex8088/electron-vite).
 
-The npm release will be deprecated in favor of [alex8088/electron-vite](https://github.com/alex8088/electron-vite) if / when upstream fixes land.
+Currently, it is in sync with the upstream version, but I'm keeping it around in case patches are required. It is published to npm as [`@kitschpatrol/electron-vite`](https://www.npmjs.com/package/@kitschpatrol/electron-vite).
+
+I originally forked to incorproate patches from [desirecore/electron-vite](https://github.com/desirecore/electron-vite).
 
 The original readme follows with light modifications:
 
